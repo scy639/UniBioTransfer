@@ -1,0 +1,92 @@
+examples
+data
+checkpoints
+.cursorignore
+.specstory
+
+
+
+#face parsing model (segmentation) Done
+Other_dependencies/face_parsing/79999_iter.pth
+
+
+
+
+# Expression model (For quantitative analysis only)  Not used
+Other_dependencies/face_recon/epoch_latest.pth
+eval_tool/Deep3DFaceRecon_pytorch_edit/BFM/*.mat
+
+# Arcface model 
+Other_dependencies/arcface/model_ir_se50.pth
+
+# pose model (For quantitative analysis only)
+Other_dependencies/Hopenet_pose/hopenet_robust_alpha1.pkl
+
+# Landmark detection model 
+Other_dependencies/DLIB_landmark_det/shape_predictor_68_face_landmarks.dat
+
+# Qantitative results
+Quantitative_Analysis/*
+
+# unwanted files
+niqe
+**/*.pyc
+
+
+
+# results
+results/*
+
+
+
+eval_tool/Deep3DFaceRecon_pytorch_edit/nvdiffrast
+
+*.egg-info
+PKG-INFO
+
+log
+tb
+
+volatiles
+wandb
+log/*
+__pycache__
+.vscode
+4debug
+
+
+
+
+ttt*
+
+
+
+
+*.out
+*.err
+*.log
+
+
+
+*.pt
+*.pth
+*.ckpt
+
+
+*.pkl
+*.mp4
+*.gif
+*.jpg
+*.png
+*.jpeg
+
+
+*.xyz
+*.ply
+*.pcd
+*.obj
+
+
+*.joint
+
+*.nfs00000*

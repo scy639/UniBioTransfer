@@ -1,0 +1,23 @@
+
+
+
+
+
+
+
+
+# ---------------- below from https://stackoverflow.com/questions/11852558/gitignore-only-allow-certain-extensions-and-files
+*
+!.gitattributes
+!.gitignore
+!readme.md
+!.gitkeep
+!*.py
+!*/
+#--------------------
+
+ttt*.py
+__pycache__
+.idea
+
+bin_recycle
