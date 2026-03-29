@@ -27,11 +27,13 @@ conda activate unibio
 sh setup.sh
 ```
 
+<small>*Tip*: If you encounter issues installing `dlib`, you can try: `pip install --only-binary=:all: dlib-bin==19.24.6`</small>
 
 ### 2. Download pre-trained weight
 Download pre-trained checkpoints via `python download_checkpoints.py`
 
 
+<small>*Tip*: If you have trouble accessing Hugging Face (e.g., in mainland China), you can firstly set the mirror endpoint: `export HF_ENDPOINT=https://hf-mirror.com`</small>
 
 
 ## Inference

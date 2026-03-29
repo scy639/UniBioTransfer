@@ -182,7 +182,7 @@ def path_img_2_path_mask( path_img, check_mask_exists = 1 , reuse_if_exists = Tr
     return path_mask
 
 from my_py_lib.torchModuleName_util import *
-if 1:
+if 0:
     #-------------------- terminal color (only for exceptions/logging/warnings)
     import sys; from IPython.core.ultratb import ColorTB; sys.excepthook = ColorTB()
     class _color:  # ANSI escape
