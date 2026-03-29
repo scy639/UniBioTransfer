@@ -106,8 +106,8 @@ _gate_k2tu = { # id 2 (max_run,interval,prob)
     'vis-ffn_gate_input'            : ( 3, 3, None ),
     '[warning]: no param to sync'   : (10,1, None ),#-------------TP-----------
     '[TP] shared sync counts'       : (10,1, None ),
-    '[Conv2d param stats] count, name (sorted desc):': (1,1, None ),#-------------upcycle-----------
-    'avg full_name='                : ( 7, 1, None ),
+    '[Conv2d param stats] count, name (sorted desc):': (0,1, None ),#-------------upcycle-----------
+    'avg full_name='                : ( 0, 1, None ),
 }
 def gate_(id_, *args, **kw, ): # gate for some vis or print behaviour, just for vis/debug
     # return 0

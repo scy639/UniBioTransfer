@@ -5,8 +5,7 @@ from confs import *
 
 
 def _download(repo_id, filename, local_path: Path) -> Path:
-    if local_path.exists():
-        return local_path
+    local_path = Path(local_path)
     from huggingface_hub import hf_hub_download
     local_path.parent.mkdir(parents=True, exist_ok=True)
     token = os.getenv("HF_TOKEN") or os.getenv("HUGGINGFACE_HUB_TOKEN")
@@ -22,5 +21,5 @@ def _download(repo_id, filename, local_path: Path) -> Path:
 
 
 _download("CompVis/stable-diffusion-v-1-4-original",SD14_filename, SD14_localpath)
-_download("scy639/UniBioTransfer",PRETRAIN_CKPT_PATH, PRETRAIN_CKPT_PATH)
-_download("scy639/UniBioTransfer",PRETRAIN_JSON_PATH, PRETRAIN_JSON_PATH)
+_download("scy639/UniBioTransfer",PRETRAIN_CKPT_PATH, ".")
+_download("scy639/UniBioTransfer",PRETRAIN_JSON_PATH, ".")
