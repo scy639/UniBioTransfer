@@ -21,5 +21,10 @@ def _download(repo_id, filename, local_path: Path) -> Path:
 
 
 _download("CompVis/stable-diffusion-v-1-4-original",SD14_filename, SD14_localpath)
+
 _download("scy639/UniBioTransfer",PRETRAIN_CKPT_PATH, ".")
 _download("scy639/UniBioTransfer",PRETRAIN_JSON_PATH, ".")
+
+_download("scy639/UniBioTransfer","Other_dependencies/arcface/model_ir_se50.pth", ".")
+_download("scy639/UniBioTransfer","Other_dependencies/DLIB_landmark_det/shape_predictor_68_face_landmarks.dat", ".")
+_download("scy639/UniBioTransfer","Other_dependencies/face_parsing/79999_iter.pth", ".")
