@@ -24,7 +24,7 @@ GATE_TOPK = 2
 # default off to keep behavior unchanged; enable by setting EXTRA_MoE_enable to True
 EXTRA_MoE_enable :bool = 1
 EXTRA_MoE_num_ep = 8        # number of sparse MoE experts (narrow FFN)
-EXTRA_MoE_inner_divisor = 64    # each expert intermediate dim = original FFN intermediate dim * this ratio
+EXTRA_MoE_inner_divisor = 128    # each expert intermediate dim = original FFN intermediate dim * this ratio
 EXTRA_MoE_topK = 2              # sparse routing selects top-k experts (k fixed to 2)
 EXTRA_MoE_add_noise :bool = 1     # add random noise to routing scores for exploration
 EXTRA_MoE_noise_std = 0.1       # noise strength (Gaussian standard deviation)
@@ -99,6 +99,7 @@ def build_ffn_gate_input_common(x: torch.Tensor, token_pos_grid__cur, tasks: lis
             lmk = lmk[:, LMK_PICK_IDX, :]
         rel = token_pos.unsqueeze(2) - lmk.unsqueeze(1)  # [b,n,L,2]
         rel_flat = rel.reshape(b, n, -1)
+    token_pos = token_pos * 2.0 - 1.0 # [0,1] -> [-1,1]
     gate_in = torch.cat([token_feat, avg_feat, task_1h, token_pos, rel_flat], dim=-1)
     ctx = {'token_feat': token_feat, 'avg_feat': avg_feat, 'task_1h': task_1h, 'token_pos': token_pos, 'lmk': lmk, 'rel': rel, 'rel_flat': rel_flat}
     return gate_in, ctx
@@ -430,12 +431,7 @@ class FFN_Shared_Plus_TaskLoRA(nn.Module):
             small_inner = self.mid_features // EXTRA_MoE_inner_divisor
             self.num_moe_expert = EXTRA_MoE_num_ep
             gate_in_dim = self.in_features + self.in_features + len(self.tasks) + 2 + 2*NUM_lmk_pick
-            hidden = gate_in_dim // 8
-            self.moe_gate_mlp = nn.Sequential(
-                nn.Linear(gate_in_dim, hidden),
-                nn.SiLU(),
-                nn.Linear(hidden, self.num_moe_expert),
-            )
+            self.moe_gate_mlp = nn.Linear(gate_in_dim, self.num_moe_expert)
 
             if EXTRA_MoE_routing_mode == 'dense':
                 self.moe_experts_batched = BatchedFeedForward(
@@ -451,17 +447,6 @@ class FFN_Shared_Plus_TaskLoRA(nn.Module):
                     experts.append(expert)
                 self.moe_experts_list = nn.ModuleList(experts)
 
-            if 0:    # log MoE gate and expert architecture to file only (no terminal output)
-                log_dir = Path("4debug/moe_ffn_struc");  log_dir.mkdir(exist_ok=True)
-                mod_name = self.module_name;   log_path = log_dir / f"{mod_name}.txt"
-                gate_desc = f"GateMLP: Linear({gate_in_dim},{hidden})->SiLU->Linear({hidden},{self.num_moe_expert})"
-                if EXTRA_MoE_routing_mode == 'dense':
-                    ep_desc = f"BatchedFeedForward(glu={self.is_glu}, num={self.num_moe_expert}, inner={small_inner}, in={self.in_features}, out={self.out_features})"
-                else:
-                    ep_desc = f"FeedForwardList(glu={self.is_glu}, num={self.num_moe_expert}, inner≈{self.in_features*mult}, in={self.in_features}, out={self.out_features})"
-                with open(log_path, 'a') as f:
-                    f.write(f"{mod_name} | routing={EXTRA_MoE_routing_mode} | {gate_desc} | {ep_desc}\n")
-                print(f"{log_path}")
         if FOR_upcycle_ckpt_GEN_or_USE:
             self.verify_approximation(orig_ffn_list=l_ffn)
 
@@ -489,24 +474,25 @@ class FFN_Shared_Plus_TaskLoRA(nn.Module):
             scores = self.moe_gate_mlp(gate_in).to(dtype=x.dtype)  # b,n,k
             if EXTRA_MoE_add_noise and self.training:
                 scores = scores + torch.randn_like(scores) * EXTRA_MoE_noise_std
+            scores = torch.softmax(scores, dim=-1)
             v_topk, idx_topk = scores.topk(k=EXTRA_MoE_topK, dim=-1)
 
             if EXTRA_MoE_routing_mode == 'dense':
                 raise Exception('not carefully checked yet')
             else:  # sparse: forward only the selected experts and aggregate by top-k weights
-                if 1:  weights_topk = torch.softmax(v_topk, dim=-1)  # b,n,topk
+                if 0:  weights_topk = torch.softmax(v_topk, dim=-1)  # b,n,topk
                 else:  weights_topk = v_topk # b,n,topk. use top-k expert scores directly as weights
                 b, n, d = x.shape
                 dim_out = self.out_features
                 y_moe_flat = x.new_zeros(b*n, dim_out) # flattened tensor accumulating outputs from all experts (bs*N, D_out)
                 x_flat = x.reshape(b*n, d) # flatten input tensor (bs*N, D_in)
                 unique_experts = torch.unique(idx_topk) # set of expert IDs actually selected in this batch
-                for j in unique_experts.tolist(): # iterate only over active experts
+                for j in range(EXTRA_MoE_num_ep): # iterate only over active experts
                     mask_j = (idx_topk == j)  # b,n,topk boolean mask indicating which tokens picked expert j
                     sel_token_mask = mask_j.any(dim=-1)  # b,n boolean mask for tokens that selected expert j
-                    if not sel_token_mask.any(): # skip if expert j was not selected by any token
-                        continue
                     flat_pos = sel_token_mask.view(-1).nonzero(as_tuple=False).squeeze(1)  # T_j flattened indices of tokens assigned to expert j
+                    if flat_pos.numel() == 0:
+                        continue
                     x_sel = x_flat.index_select(0, flat_pos)  # T_j,d select those tokens from flattened input
                     # run expert only on selected tokens (n = T_j)
                     y_sel = self.moe_experts_list[j](x_sel.view(1, x_sel.shape[0], d)).squeeze(0)  # T_j,dim_out expert j handles only its tokens
