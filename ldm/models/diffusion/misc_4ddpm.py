@@ -39,7 +39,6 @@ from torch.distributed.optim import ZeroRedundancyOptimizer
 from src.Face_models.encoders.model_irse import Backbone
 import dlib
 from eval_tool.lpips.lpips import LPIPS
-import wandb
 from PIL import Image
 import argparse
 from contextlib import nullcontext
