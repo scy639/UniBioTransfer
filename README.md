@@ -29,7 +29,6 @@ conda activate unibio
 sh setup.sh
 ```
 
-<small>*Tip*: If you encounter issues installing `dlib`, you can try: `pip install --only-binary=:all: dlib-bin==19.24.6`</small>
 
 ### 2. Download pre-trained weight
 Download pre-trained checkpoints via `python download_checkpoints.py`

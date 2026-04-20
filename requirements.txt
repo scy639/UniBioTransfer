@@ -5,7 +5,6 @@ albumentations==1.1.0
 bezier==2023.7.28
 diffusers==0.30.3
 dift==0.0.7
-dlib==19.24.2
 einops==0.4.1
 face_alignment==1.4.1
 ftfy==6.0.3

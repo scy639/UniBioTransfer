@@ -6,7 +6,6 @@ def:
 """
 import os
 from pathlib import Path
-import dlib
 from tqdm import tqdm
 from my_py_lib.image_util import print_image_statistics
 import torch

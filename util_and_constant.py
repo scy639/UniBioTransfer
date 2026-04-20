@@ -47,7 +47,6 @@ global_.rank_ = rank_
 
 MERGE_CFG_in_one_batch :bool = 1
 
-import dlib
 FOR_upcycle_ckpt_GEN_or_USE :bool = 0
 
 DEBUG = 0

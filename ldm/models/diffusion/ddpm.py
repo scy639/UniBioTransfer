@@ -438,8 +438,7 @@ class LatentDiffusion(DDPM):
             if USE_pts:
                 self.ptsM_Generator = LandmarkExtractor(include_visualizer=True,img_256_mode=False)
             else:
-                self.detector = dlib.get_frontal_face_detector()
-                self.predictor = dlib.shape_predictor("Other_dependencies/DLIB_landmark_det/shape_predictor_68_face_landmarks.dat")
+                raise
                         
             if self.Landmarks_weight>0:
                 self.landmark_proj_out=nn.Linear(NUM_pts*2, 768)
