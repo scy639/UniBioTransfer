@@ -107,20 +107,20 @@ def create_demo():
     """Create Gradio demo interface."""
     import gradio as gr
 
-    with gr.Blocks(title="UniBioTransfer") as demo:
+    with gr.Blocks(title="xxx") as demo:
         gr.Markdown(
             """
             # UniBioTransfer
-            **Unified Framework for Multiple Biometrics Transfer**
 
             Perform face transfer, hair transfer, motion transfer (face reenactment), and head transfer.
 
             - **Face Transfer**: Transfer face identity from reference to target
             - **Hair Transfer**: Transfer hairstyle from reference to target
-            - **Motion Transfer**: Transfer facial expression/motion from reference to target
-            - **Head Transfer**: Transfer entire head region from reference to target
+            - **Motion Transfer**: Transfer motion(expression+head pose) from reference to target
+            - **Head Transfer**: Transfer entire head from reference to target
 
-            [Paper](https://arxiv.org/abs/2603.19637) | [Project Page](https://scy639.github.io/UniBioTransfer.github.io/)
+            [Project Page](https://scy639.github.io/UniBioTransfer.github.io/)
+            [Paper](https://arxiv.org/abs/2603.19637)
             """
         )
 
@@ -147,8 +147,8 @@ def create_demo():
 
                 with gr.Row():
                     ddim_steps = gr.Slider(
-                        minimum=20,
-                        maximum=100,
+                        minimum=4,
+                        maximum=50,
                         value=50,
                         step=1,
                         label="DDIM Steps",
@@ -183,17 +183,16 @@ def create_demo():
                 )
 
         gr.Markdown(
-            """
-            ### Usage Tips
-            1. Upload a **target image** (the person whose face/hair will be modified)
-            2. Upload a **reference image** (the source of the attribute to transfer)
-            3. Select the task type and adjust parameters
-            4. Click "Run Inference"
+"""
+### Usage
+1. Upload a **target image** (the person whose face/hair/motion/head will be modified)
+2. Upload a **reference image** (the source of the attribute to transfer)
+3. Select the **task** type
+4. Click "Run Inference"
 
-            ### Requirements
-            - Minimum **11GB VRAM** required (e.g., NVIDIA RTX 2080 Ti)
-            - Works best with aligned face images
-            """
+### Requirements
+- Works best when the heads in the two input images have similar sizes.
+"""
         )
 
         run_btn.click(
@@ -206,6 +205,17 @@ def create_demo():
             fn=lambda t: f"Task switched to: {t} transfer",
             inputs=[task_dropdown],
             outputs=[status_text],
+        )
+
+        gr.Examples(
+            examples=[
+                ["face", "examples/face/tgt.png", "examples/face/ref.png", 50, 3.0, 42],
+                ["hair", "examples/hair/tgt.png", "examples/hair/ref.png", 50, 3.0, 42],
+                ["motion", "examples/motion/tgt.png", "examples/motion/ref.png", 50, 3.0, 42],
+                ["head", "examples/head/tgt.png", "examples/head/ref.png", 50, 3.0, 42],
+            ],
+            inputs=[task_dropdown, tgt_image, ref_image, ddim_steps, scale, seed],
+            label="Examples",
         )
 
     return demo

@@ -230,7 +230,7 @@ class UniBioTransferModel(LatentDiffusion, PyTorchModelHubMixin):
 
         _load_first_stage_from_sd14(model, sd14_path)
 
-        offload_unused_tasks__LD(model, task_id, method="del")
+        # offload_unused_tasks__LD(model, task_id, method="cpu")
         
         model.ptsM_Generator = LandmarkExtractor(include_visualizer=True, img_256_mode=False)
         cleanup_gpu_memory()
