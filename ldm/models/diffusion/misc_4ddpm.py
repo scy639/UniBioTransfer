@@ -46,7 +46,7 @@ from util_vis import vis_tensors_A
 from my_py_lib.image_util import save_any_A,imgs_2_grid_A
 from my_py_lib.torch_util import recursive_to
 from my_py_lib.torch_util import custom_repr_v3
-from confs import *
+from imports import *
 from lmk_util.lmk_extractor import LandmarkExtractor,lmkAll_2_lmkMain
 from ldm.modules.encoders.modules import FrozenCLIPEmbedder
 from ldm.modules.diffusionmodules.openaimodel import UNetModel

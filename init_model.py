@@ -2,7 +2,7 @@ import sys,os
 cur_dir = os.path.dirname(os.path.abspath(__file__))
 if __name__=='__main__': sys.path.append(os.path.abspath(os.path.join(cur_dir, '..')))
 
-from confs import *
+from imports import *
 import json
 import argparse, os, sys, glob
 import cv2

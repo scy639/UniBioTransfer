@@ -8,7 +8,7 @@ from einops import rearrange, repeat
 
 from ldm.modules.diffusionmodules.util import checkpoint
 from typing import List, Tuple
-from confs import *
+from imports import *
 
 
 def exists(val):

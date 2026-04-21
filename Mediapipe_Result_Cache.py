@@ -1,4 +1,4 @@
-from confs import *
+from imports import *
 import json,random,os
 import numpy as np
 

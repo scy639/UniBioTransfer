@@ -1,4 +1,4 @@
-from confs import *
+from imports import *
 import global_
 import torch,copy
 import torch.nn as nn

@@ -1,4 +1,4 @@
-from confs import *
+from imports import *
 from pathlib import Path
 import numpy as np
 import cv2

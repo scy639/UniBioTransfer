@@ -3,7 +3,7 @@ ENABLE_mask_cache = False
 
 
 import cv2
-from confs import *
+from imports import *
 from util_cv2 import cv2_resize_auto_interpolation
 from Mediapipe_Result_Cache import Mediapipe_Result_Cache
 from lmk_util.lmk_extractor import LandmarkExtractor

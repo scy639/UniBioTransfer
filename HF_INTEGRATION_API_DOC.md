@@ -784,7 +784,7 @@ pytorch-lightning>=2.0.0
 | `Dataset_custom.py` | Inference dataset |
 | `gen_lmk_and_mask.py` | Landmark and mask generation |
 | `lmk_util/lmk_extractor.py` | LandmarkExtractor class |
-| `confs.py` | Argument parsing and constants |
+| `imports.py` | Argument parsing and constants |
 | `util_and_constant.py` | Global constants |
 | `global_.py` | Global variables (task, rank, etc.) |
 | `LatentDiffusion.yaml` | Model config |

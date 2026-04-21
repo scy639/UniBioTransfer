@@ -1,6 +1,6 @@
 """SAMPLING ONLY."""
 
-from confs import *
+from imports import *
 import torch
 import numpy as np
 from tqdm import tqdm

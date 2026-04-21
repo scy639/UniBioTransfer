@@ -1,6 +1,6 @@
 from pathlib import Path
 import os
-from confs import *
+from imports import *
 
 
 

@@ -1,4 +1,4 @@
-from confs import *
+from imports import *
 from abc import abstractmethod
 from functools import partial
 import math

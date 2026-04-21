@@ -4,7 +4,7 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 from my_py_lib.torch_util import custom_repr_v3
-from confs import *
+from imports import *
 import cv2, numpy as np
 from lmk_util.lmk_extractor import lmkAll_2_lmkMain, get_lmkMain_indices
 from MoE import *
