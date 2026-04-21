@@ -291,8 +291,15 @@ class DDIMSampler(object):
                     z_ref_in = torch.cat([z_ref] * 2)
                 else:
                     z_ref_in = None
+                batch_size = t.shape[0]
+                double_gg_lmk = batch_size>1 and hasattr(global_, 'lmk_') and global_.lmk_ is not None
+                if double_gg_lmk:
+                    orig_lmk_ = global_.lmk_
+                    global_.lmk_ = torch.cat([orig_lmk_] * 2)
                 c_in = torch.cat([unconditional_conditioning, c]) #c_in: 2,1,768
                 e_t_uncond, e_t = self.model.apply_model(x_in, t_in, c_in, z_ref=z_ref_in,).chunk(2)
+                if double_gg_lmk:
+                    global_.lmk_ = orig_lmk_
             else:
                 # first infer unconditional then conditional (reduces peak CUDA memory)
                 e_t_uncond = self.model.apply_model(x, t, unconditional_conditioning, z_ref=z_ref,)
