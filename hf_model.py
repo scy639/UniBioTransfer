@@ -129,7 +129,6 @@ class UniBioTransferModel(LatentDiffusion, PyTorchModelHubMixin):
         json_path = cache_dir / "checkpoints" / "pretrained.json"
         sd14_path = cache_dir / "checkpoints" / SD14_FILENAME
         arcface_path = cache_dir / "Other_dependencies" / "arcface" / "model_ir_se50.pth"
-        dlib_path = cache_dir / "Other_dependencies" / "DLIB_landmark_det" / "shape_predictor_68_face_landmarks.dat"
         face_parsing_path = cache_dir / "Other_dependencies" / "face_parsing" / "79999_iter.pth"
         
         def _download_file(repo, filename, local_path):
@@ -156,8 +155,6 @@ class UniBioTransferModel(LatentDiffusion, PyTorchModelHubMixin):
         if download_deps:
             if not arcface_path.exists():
                 _download_file(repo_id, "Other_dependencies/arcface/model_ir_se50.pth", arcface_path)
-            if not dlib_path.exists():
-                _download_file(repo_id, "Other_dependencies/DLIB_landmark_det/shape_predictor_68_face_landmarks.dat", dlib_path)
             if not face_parsing_path.exists():
                 _download_file(repo_id, "Other_dependencies/face_parsing/79999_iter.pth", face_parsing_path)
         
