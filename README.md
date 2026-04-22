@@ -47,6 +47,13 @@ python infer.py --task-name=motion --tgt=examples/motion/tgt.png --ref=examples/
 python infer.py --task-name=head   --tgt=examples/head/tgt.png   --ref=examples/head/ref.png   --out-dir=examples/head
 ```
 
+### Web interface (Gradio demo)
+
+```bash
+python app.py
+```
+
+
 ## Citing Us
 If you find our work valuable, we kindly ask you to consider citing our paper.
 

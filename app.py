@@ -56,7 +56,7 @@ def get_pipeline(task):
 
 # 核心：将所有会用到 GPU 的前向推理逻辑包裹在这里
 @spaces.GPU
-def run_gpu_inference(pipeline:UniBioTransferPipeline, tgt_pil, ref_pil, ddim_steps, scale, seed):
+def run_gpu_inference(pipeline:UniBioTransferPipeline, tgt_pil, ref_pil, ddim_steps, scale, seed, num_images):
     """
     这里是 ZeroGPU 分配算力的地方。进入此函数时可以安全地 to("cuda")。
     如果是在本地服务器，这个装饰器没用，但内部的 .to("cuda") 同样生效。
@@ -67,10 +67,11 @@ def run_gpu_inference(pipeline:UniBioTransferPipeline, tgt_pil, ref_pil, ddim_st
         ddim_steps=ddim_steps,
         scale=scale,
         seed=seed,
+        num_images=num_images,
     )
 
 
-def inference(task, tgt_img, ref_img, ddim_steps, scale, seed):
+def inference(task, tgt_img, ref_img, ddim_steps, seed, num_images):
     """
     Run inference for the demo.
     """
@@ -86,20 +87,22 @@ def inference(task, tgt_img, ref_img, ddim_steps, scale, seed):
 
         # 2. 加锁，防止并发污染 global_.task，进入 GPU 推理
         with inference_lock:
-            result = run_gpu_inference(
+            results = run_gpu_inference(
                 pipeline,
                 tgt_pil,
                 ref_pil,
                 int(ddim_steps),
-                float(scale),
-                int(seed)
+                float(3),
+                int(seed),
+                int(num_images)
             )
 
-        return np.array(result), f"Success! Task: {task} transfer completed."
+        return results, f"Success! Task: {task} transfer completed."
 
     except Exception as e:
         import traceback
         error_msg = f"Error: {str(e)}\n{traceback.format_exc()}"
+        print(f"{error_msg}")
         return None, error_msg
 
 
@@ -107,7 +110,7 @@ def create_demo():
     """Create Gradio demo interface."""
     import gradio as gr
 
-    with gr.Blocks(title="xxx") as demo:
+    with gr.Blocks(title="UniBioTransfer") as demo:
         gr.Markdown(
             """
             # UniBioTransfer
@@ -119,6 +122,7 @@ def create_demo():
             - **Motion Transfer**: Transfer motion(expression+head pose) from reference to target
             - **Head Transfer**: Transfer entire head from reference to target
 
+            [Code](https://github.com/scy639/UniBioTransfer)
             [Project Page](https://scy639.github.io/UniBioTransfer.github.io/)
             [Paper](https://arxiv.org/abs/2603.19637)
             """
@@ -154,14 +158,14 @@ def create_demo():
                         label="DDIM Steps",
                         info="More steps = better quality but slower",
                     )
-                    scale = gr.Slider(
-                        minimum=1.0,
-                        maximum=10.0,
-                        value=3.0,
-                        step=0.5,
-                        label="CFG Scale",
-                        info="Guidance scale for conditioning",
-                    )
+                    # scale = gr.Slider(
+                    #     minimum=1.0,
+                    #     maximum=10.0,
+                    #     value=3.0,
+                    #     step=0.5,
+                    #     label="CFG Scale",
+                    #     info="Guidance scale for conditioning",
+                    # )
 
                 seed = gr.Number(
                     value=42,
@@ -169,13 +173,22 @@ def create_demo():
                     info="For reproducibility",
                 )
 
+                num_images = gr.Slider(
+                    minimum=1,
+                    maximum=32,
+                    value=4,
+                    step=1,
+                    label="Number of output images",
+                    info="Multi-output with different initial noise",
+                )
+
                 run_btn = gr.Button("Run Inference", variant="primary")
 
             with gr.Column():
-                output_image = gr.Image(
-                    label="Result",
-                    type="numpy",
-                    height=400,
+                output_gallery = gr.Gallery(
+                    label="Results",
+                    height=800,
+                    columns=2,
                 )
                 status_text = gr.Textbox(
                     label="Status",
@@ -197,8 +210,8 @@ def create_demo():
 
         run_btn.click(
             fn=inference,
-            inputs=[task_dropdown, tgt_image, ref_image, ddim_steps, scale, seed],
-            outputs=[output_image, status_text],
+            inputs=[task_dropdown, tgt_image, ref_image, ddim_steps, seed, num_images],
+            outputs=[output_gallery, status_text],
         )
 
         task_dropdown.change(
@@ -209,12 +222,12 @@ def create_demo():
 
         gr.Examples(
             examples=[
-                ["face", "examples/face/tgt.png", "examples/face/ref.png", 50, 3.0, 42],
-                ["hair", "examples/hair/tgt.png", "examples/hair/ref.png", 50, 3.0, 42],
-                ["motion", "examples/motion/tgt.png", "examples/motion/ref.png", 50, 3.0, 42],
-                ["head", "examples/head/tgt.png", "examples/head/ref.png", 50, 3.0, 42],
+                ["face", "examples/face/tgt.png", "examples/face/ref.png",       20, 42, 4],
+                ["hair", "examples/hair/tgt.png", "examples/hair/ref.png",       20, 42, 4],
+                ["motion", "examples/motion/tgt.png", "examples/motion/ref.png", 20, 42, 4],
+                ["head", "examples/head/tgt.png", "examples/head/ref.png",       20, 42, 4],
             ],
-            inputs=[task_dropdown, tgt_image, ref_image, ddim_steps, scale, seed],
+            inputs=[task_dropdown, tgt_image, ref_image, ddim_steps, seed, num_images],
             label="Examples",
         )
 

@@ -76,6 +76,7 @@ class UniBioTransferPipeline:
         ddim_steps=DDIM_STEPS_DEFAULT,
         scale=SCALE_DEFAULT,
         seed=42,
+        num_images=1,
     ):
         """
         Run inference on a pair of images.
@@ -88,10 +89,10 @@ class UniBioTransferPipeline:
         tgt_img = self._resize_image(tgt_img, (H, W))
         ref_img = self._resize_image(ref_img, (H, W))
 
-        result = self._run_inference(tgt_img, ref_img, ddim_steps, scale)
+        result_tensors = self._run_inference(tgt_img, ref_img, ddim_steps, scale, num_images)
 
-        result_img = self._postprocess(result)
-        return result_img
+        result_imgs = [self._postprocess(result_tensors[i]) for i in range(result_tensors.shape[0])]
+        return result_imgs
 
     def _load_image(self, img):
         """Load image from various formats."""
@@ -110,7 +111,7 @@ class UniBioTransferPipeline:
             img = img.resize(size, Image.LANCZOS)
         return img
 
-    def _run_inference(self, tgt_img, ref_img, ddim_steps, scale):
+    def _run_inference(self, tgt_img, ref_img, ddim_steps, scale, num_images):
         """
         Run diffusion sampling.
         完全复用 infer.py 的逻辑，使用 dataloader。
@@ -149,16 +150,40 @@ class UniBioTransferPipeline:
             with torch.no_grad():
                 for test_batch, prior, test_model_kwargs, out_stem_batch in dataloader:
                     test_batch = test_batch.to(run_device)
+                    if test_batch.shape[0] == 1:
+                        test_batch = test_batch.repeat(num_images, 1, 1, 1)
+                    if isinstance(prior, torch.Tensor):
+                        prior = prior.to(run_device)
+                        if prior.shape[0] == 1:
+                            prior = prior.repeat(num_images, 1, 1, 1)
                     for k, v in test_model_kwargs.items():
                         if isinstance(v, torch.Tensor):
-                            test_model_kwargs[k] = v.to(run_device)
+                            v = v.to(run_device)
+                            if v.shape[0] == 1:
+                                repeats = [num_images] + [1] * (v.ndim - 1)
+                                v = v.repeat(*repeats)
+                            test_model_kwargs[k] = v
+                        elif isinstance(v, dict):
+                            new_v = {}
+                            for kk, vv in v.items():
+                                if isinstance(vv, torch.Tensor):
+                                    vv = vv.to(run_device)
+                                    if vv.shape[0] == 1:
+                                        repeats = [num_images] + [1] * (vv.ndim - 1)
+                                        vv = vv.repeat(*repeats)
+                                    new_v[kk] = vv
+                                else:
+                                    new_v[kk] = vv
+                            test_model_kwargs[k] = new_v
+                        elif isinstance(v, list):
+                            test_model_kwargs[k] = v * num_images
 
                     self.model.set_task(test_model_kwargs)
-                    bs = test_batch.shape[0]
+                    bs = num_images
 
                     batch_ = {
                         **test_model_kwargs,
-                        "GT": torch.zeros_like(test_model_kwargs["inpaint_image"]),
+                        "GT": torch.zeros(num_images, *test_model_kwargs["inpaint_image"].shape[1:], device=run_device),
                     }
                     batch_, c = self.model.get_input_and_conditioning(batch_, device=run_device)
 
@@ -196,7 +221,7 @@ class UniBioTransferPipeline:
 
                     self.model.unset_task()
 
-                    return x_samples_ddim[0]
+                    return x_samples_ddim
 
     def _postprocess(self, tensor):
         """Convert model output tensor to PIL Image."""
